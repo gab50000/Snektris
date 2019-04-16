@@ -1,11 +1,56 @@
+import enum
 import time
 
 import numpy as np
 import pygame
-from pygame.locals import *
+from pygame.locals import QUIT
 
 
-class Tetris:
+DELAY = 1 / 30
+
+
+class Color(enum.Enum):
+    RED = 1
+    GREEN = 2
+    BLUE = 3
+    PURPLE = 4
+    YELLOW = 5
+
+
+class Tetromino:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+    def step(self):
+        self.height -= 1
+
+
+class LShaped(Tetromino):
+    pass
+
+
+class JShaped(Tetromino):
+    pass
+
+
+class SShaped(Tetromino):
+    pass
+
+
+class ZShaped(Tetromino):
+    pass
+
+
+class IShaped(Tetromino):
+    pass
+
+
+class Square(Tetromino):
+    pass
+
+
+class Grid:
     def __init__(self, width, height):
         self.height = height
         self.width = width
@@ -23,7 +68,7 @@ class Tetris:
         background.fill((0, 0, 0))
         screen.blit(background, (0, 0))
 
-    def draw_grid(self, screen):
+    def draw(self, screen):
         pix_width = self.pixel_width
         pix_height = self.pixel_height
         for i in range(self.grid_width):
@@ -35,7 +80,7 @@ class Tetris:
 def main():
     pygame.display.init()
     screen = pygame.display.set_mode((300, 600))
-    tetris = Tetris(300, 600, )
+    grid = Grid(300, 600, )
     pygame.display.set_caption("Tetris")
 
     while True:
@@ -43,11 +88,11 @@ def main():
             if event.type == QUIT:
                 return
 
-        tetris.draw_background(screen)
-        tetris.draw_grid(screen)
+        grid.draw_background(screen)
+        grid.draw(screen)
 
         pygame.display.flip()
-        time.sleep(1/30)
+        time.sleep(DELAY)
 
 
 main()
