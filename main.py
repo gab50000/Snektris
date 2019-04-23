@@ -13,41 +13,98 @@ class Color(enum.Enum):
     RED = 1
     GREEN = 2
     BLUE = 3
+    CYAN = 3
     PURPLE = 4
     YELLOW = 5
+    ORANGE = 6
+
+
+class SingleBlock:
+    def draw(self, screen):
+        pass
 
 
 class Tetromino:
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
+    """
+    Base class for all tetrominos.
+    Each tetromino needs a color and coordinates.
+    """
+
+    color = ...
+    coords = ...
+
+    def __init__(self, i, j):
+        self.i = i
+        self.j = j
 
     def step(self):
-        self.height -= 1
+        self.i += 1
+
+    def rotate(self):
+        self.coords = [(j, 3 - i) for i, j in self.coords]
+
+    def draw(self, grid):
+        pass
 
 
 class LShaped(Tetromino):
-    pass
+    color = Color.BLUE
+    coords = (
+        (0, 0),
+        (0, 1),
+        (0, 2),
+        (1, 2)
+    )
 
 
 class JShaped(Tetromino):
-    pass
+    color = Color.ORANGE
+    coords = (
+        (1, 0),
+        (1, 1),
+        (1, 2),
+        (0, 2)
+    )
 
 
 class SShaped(Tetromino):
-    pass
+    color = Color.GREEN
+    coords = (
+        (0, 0),
+        (0, 1),
+        (1, 1),
+        (1, 2)
+    )
 
 
 class ZShaped(Tetromino):
-    pass
+    color = Color.RED
+    coords = (
+        (1, 0),
+        (1, 1),
+        (0, 1),
+        (0, 2)
+    )
 
 
 class IShaped(Tetromino):
-    pass
+    color = Color.CYAN
+    coords = (
+        (0, 0),
+        (0, 1),
+        (0, 2),
+        (0, 3)
+    )
 
 
 class Square(Tetromino):
-    pass
+    color = Color.YELLOW
+    coords = (
+        (0, 0),
+        (1, 0),
+        (0, 1),
+        (1, 1)
+    )
 
 
 class Grid:
@@ -68,7 +125,7 @@ class Grid:
         background.fill((0, 0, 0))
         screen.blit(background, (0, 0))
 
-    def draw(self, screen):
+    def draw_grid(self, screen):
         pix_width = self.pixel_width
         pix_height = self.pixel_height
         for i in range(self.grid_width):
@@ -76,11 +133,14 @@ class Grid:
                 rect = pygame.Rect(i * pix_width, j * pix_height, pix_width - 1, pix_height - 1)
                 pygame.draw.rect(screen, (255, 255, 255), rect)
 
+    def draw_tetrominos(self, screen):
+        pass
+
 
 def main():
     pygame.display.init()
     screen = pygame.display.set_mode((300, 600))
-    grid = Grid(300, 600, )
+    grid = Grid(300, 600)
     pygame.display.set_caption("Tetris")
 
     while True:
@@ -89,7 +149,7 @@ def main():
                 return
 
         grid.draw_background(screen)
-        grid.draw(screen)
+        grid.draw_grid(screen)
 
         pygame.display.flip()
         time.sleep(DELAY)
