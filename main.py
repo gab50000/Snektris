@@ -36,8 +36,14 @@ class Tetromino:
         self.i = i
         self.j = j
 
-    def step(self):
+    def step_down(self):
         self.i += 1
+
+    def step_left(self):
+        self.j -= 1
+
+    def step_right(self):
+        self.j += 1
 
     def rotate(self):
         self.coords = [(j, 3 - i) for i, j in self.coords]
