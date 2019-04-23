@@ -19,13 +19,28 @@ ORANGE = (255, 165, 0)
 
 
 class SingleBlock:
-    def __init__(self, i, j):
+    def __init__(self, i, j, color):
         self.i = i
         self.j = j
+        self.color = color
 
     @property
     def coords(self):
         return self.i, self.j
+
+    @coords.setter
+    def coords(self, new_coords):
+        self.i, self.j = new_coords
+
+    def step_down(self):
+        self.i += 1
+
+    def step_left(self):
+        self.j -= 1
+
+    def step_right(self):
+        self.j += 1
+
 
 
 class Tetromino:
@@ -40,21 +55,24 @@ class Tetromino:
     def __init__(self, i, j):
         self.i = i
         self.j = j
+        self.blocks = [SingleBlock(self.i + i, self.j + j, self.color)
+                       for i, j in self.coords]
 
     def step_down(self):
-        self.i += 1
+        for block in self.blocks:
+            block.step_down()
 
     def step_left(self):
-        self.j -= 1
+        for block in self.blocks:
+            block.step_left()
 
     def step_right(self):
-        self.j += 1
+        for block in self.blocks:
+            block.step_right()
 
     def rotate(self):
-        self.coords = [(j, 3 - i) for i, j in self.coords]
-
-    def draw(self, grid):
-        pass
+        for block in self.blocks:
+            block.coords = block.j, 3 - block.i
 
 
 class LShaped(Tetromino):
@@ -84,6 +102,16 @@ class SShaped(Tetromino):
         (0, 1),
         (1, 1),
         (1, 2)
+    )
+
+
+class TShaped(Tetromino):
+    color = PURPLE
+    coords = (
+        (0, 1),
+        (1, 0),
+        (1, 1),
+        (2, 1)
     )
 
 
@@ -144,6 +172,10 @@ class Grid:
             for j in range(self.grid_height):
                 rect = pygame.Rect(i * pix_width, j * pix_height, pix_width - 1, pix_height - 1)
                 pygame.draw.rect(screen, BACKGROUND, rect)
+
+        for block in self.blocks:
+            i, j = block.coordinates
+            color = block.color
 
     def draw_tetrominos(self, screen):
         pass
