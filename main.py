@@ -128,11 +128,13 @@ class Grid:
         self.pixel_width = self.width // self.grid_width
         self.pixel_height = self.height // self.grid_height
 
+        self.blocks = []
+
     @staticmethod
     def draw_background(screen):
         background = pygame.Surface(screen.get_size())
         background = background.convert()
-        background.fill((0, 0, 0))
+        background.fill(LINE_COLOR)
         screen.blit(background, (0, 0))
 
     def draw_grid(self, screen):
@@ -141,7 +143,7 @@ class Grid:
         for i in range(self.grid_width):
             for j in range(self.grid_height):
                 rect = pygame.Rect(i * pix_width, j * pix_height, pix_width - 1, pix_height - 1)
-                pygame.draw.rect(screen, (255, 255, 255), rect)
+                pygame.draw.rect(screen, BACKGROUND, rect)
 
     def draw_tetrominos(self, screen):
         pass
@@ -165,6 +167,7 @@ def main():
         time.sleep(DELAY)
 
 
-main()
+if __name__ == "__main__":
+    main()
 
 
