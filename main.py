@@ -1,4 +1,3 @@
-import enum
 import time
 
 import numpy as np
@@ -8,15 +7,15 @@ from pygame.locals import QUIT
 
 DELAY = 1 / 30
 
-
-class Color(enum.Enum):
-    RED = 1
-    GREEN = 2
-    BLUE = 3
-    CYAN = 3
-    PURPLE = 4
-    YELLOW = 5
-    ORANGE = 6
+LINE_COLOR = (200, 200, 200)
+BACKGROUND = (50, 50, 50)
+RED = (256, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+CYAN = (0, 255, 255)
+PURPLE = (128, 0, 128)
+YELLOW = (255, 255, 0)
+ORANGE = (255, 165, 0)
 
 
 class SingleBlock:
@@ -48,7 +47,7 @@ class Tetromino:
 
 
 class LShaped(Tetromino):
-    color = Color.BLUE
+    color = BLUE
     coords = (
         (0, 0),
         (0, 1),
@@ -58,7 +57,7 @@ class LShaped(Tetromino):
 
 
 class JShaped(Tetromino):
-    color = Color.ORANGE
+    color = ORANGE
     coords = (
         (1, 0),
         (1, 1),
@@ -68,7 +67,7 @@ class JShaped(Tetromino):
 
 
 class SShaped(Tetromino):
-    color = Color.GREEN
+    color = GREEN
     coords = (
         (0, 0),
         (0, 1),
@@ -78,7 +77,7 @@ class SShaped(Tetromino):
 
 
 class ZShaped(Tetromino):
-    color = Color.RED
+    color = RED
     coords = (
         (1, 0),
         (1, 1),
@@ -88,7 +87,7 @@ class ZShaped(Tetromino):
 
 
 class IShaped(Tetromino):
-    color = Color.CYAN
+    color = CYAN
     coords = (
         (0, 0),
         (0, 1),
@@ -98,7 +97,7 @@ class IShaped(Tetromino):
 
 
 class Square(Tetromino):
-    color = Color.YELLOW
+    color = YELLOW
     coords = (
         (0, 0),
         (1, 0),
