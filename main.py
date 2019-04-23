@@ -19,8 +19,13 @@ ORANGE = (255, 165, 0)
 
 
 class SingleBlock:
-    def draw(self, screen):
-        pass
+    def __init__(self, i, j):
+        self.i = i
+        self.j = j
+
+    @property
+    def coords(self):
+        return self.i, self.j
 
 
 class Tetromino:
