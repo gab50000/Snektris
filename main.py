@@ -1,3 +1,4 @@
+from itertools import product
 import time
 
 import numpy as np
@@ -50,64 +51,67 @@ class Tetromino:
     """
 
     color = ...
-    coords = ...
+    initial_coords = ...
 
     def __init__(self, i, j):
         self.i = i
         self.j = j
         self.blocks = [SingleBlock(self.i + i, self.j + j, self.color)
-                       for i, j in self.coords]
+                       for i, j in self.initial_coords]
 
     def step_down(self):
+        self.i += 1
         for block in self.blocks:
             block.step_down()
 
     def step_left(self):
+        self.j -= 1
         for block in self.blocks:
             block.step_left()
 
     def step_right(self):
+        self.j += 1
         for block in self.blocks:
             block.step_right()
 
     def rotate(self):
         for block in self.blocks:
-            block.coords = block.j, 3 - block.i
+            block.coords = self.i + block.j - self.j, self.j + 3 - (block.i - self.i) + self.i
 
 
 class LShaped(Tetromino):
     color = BLUE
-    coords = (
+    initial_coords = (
         (0, 0),
-        (0, 1),
-        (0, 2),
-        (1, 2)
+        (1, 0),
+        (2, 0),
+        (2, 1)
     )
 
 
 class JShaped(Tetromino):
     color = ORANGE
-    coords = (
-        (1, 0),
+    initial_coords = (
+        (0, 1),
         (1, 1),
-        (1, 2),
-        (0, 2)
+        (2, 1),
+        (2, 0)
     )
 
 
 class SShaped(Tetromino):
     color = GREEN
-    coords = (
+    initial_coords = (
         (0, 0),
-        (0, 1),
+        (1, 0),
         (1, 1),
-        (1, 2)
+        (2, 1)
     )
 
 
 class TShaped(Tetromino):
     color = PURPLE
-    coords = (
+    initial_coords = (
         (0, 1),
         (1, 0),
         (1, 1),
@@ -117,27 +121,27 @@ class TShaped(Tetromino):
 
 class ZShaped(Tetromino):
     color = RED
-    coords = (
-        (1, 0),
-        (1, 1),
+    initial_coords = (
         (0, 1),
-        (0, 2)
+        (1, 1),
+        (1, 0),
+        (2, 0)
     )
 
 
 class IShaped(Tetromino):
     color = CYAN
-    coords = (
+    initial_coords = (
         (0, 0),
-        (0, 1),
-        (0, 2),
-        (0, 3)
+        (1, 0),
+        (2, 0),
+        (3, 0)
     )
 
 
 class Square(Tetromino):
     color = YELLOW
-    coords = (
+    initial_coords = (
         (0, 0),
         (1, 0),
         (0, 1),
@@ -168,14 +172,15 @@ class Grid:
     def draw_grid(self, screen):
         pix_width = self.pixel_width
         pix_height = self.pixel_height
-        for i in range(self.grid_width):
-            for j in range(self.grid_height):
-                rect = pygame.Rect(i * pix_width, j * pix_height, pix_width - 1, pix_height - 1)
-                pygame.draw.rect(screen, BACKGROUND, rect)
+        for i, j in product(range(self.grid_height), range(self.grid_width)):
+            rect = pygame.Rect(j * pix_width, i * pix_height, pix_width - 1, pix_height - 1)
+            pygame.draw.rect(screen, BACKGROUND, rect)
 
         for block in self.blocks:
-            i, j = block.coordinates
+            i, j = block.coords
             color = block.color
+            rect = pygame.Rect(j * pix_width, i * pix_height, pix_width - 1, pix_height - 1)
+            pygame.draw.rect(screen, color, rect)
 
     def draw_tetrominos(self, screen):
         pass
@@ -187,6 +192,10 @@ def main():
     grid = Grid(300, 600)
     pygame.display.set_caption("Tetris")
 
+    t_shaped = LShaped(0, 4)
+    grid.blocks.extend(t_shaped.blocks)
+
+    counter = 0
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -197,6 +206,12 @@ def main():
 
         pygame.display.flip()
         time.sleep(DELAY)
+
+        if counter == 60:
+            t_shaped.rotate()
+            counter = 0
+
+        counter += 1
 
 
 if __name__ == "__main__":
