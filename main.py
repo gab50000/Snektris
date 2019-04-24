@@ -1,7 +1,6 @@
 from itertools import product
 import time
 
-import numpy as np
 import pygame
 from pygame.locals import QUIT, K_SPACE
 
@@ -196,7 +195,7 @@ def main():
     grid = Grid(300, 600)
     pygame.display.set_caption("Tetris")
 
-    t_shaped = LShaped(0, 4)
+    t_shaped = SShaped(0, 4)
     grid.blocks.extend(t_shaped.blocks)
 
     counter = 0
