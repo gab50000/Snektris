@@ -20,8 +20,8 @@ ORANGE = (255, 165, 0)
 
 class SingleBlock:
     def __init__(self, i, j, color):
-        self.i = i
-        self.j = j
+        self.i = i + 1
+        self.j = j + 1
         self.color = color
 
     @property
@@ -230,5 +230,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
