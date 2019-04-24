@@ -3,7 +3,7 @@ import time
 
 import numpy as np
 import pygame
-from pygame.locals import QUIT
+from pygame.locals import QUIT, K_SPACE
 
 
 DELAY = 1 / 30
@@ -74,9 +74,13 @@ class Tetromino:
         for block in self.blocks:
             block.step_right()
 
-    def rotate(self):
+    def rotate_clockwise(self):
         for block in self.blocks:
-            block.coords = self.i + block.j - self.j, self.j + 3 - (block.i - self.i) + self.i
+            block.coords = self.i + block.j - self.j, self.j + 3 - (block.i - self.i)
+
+    def rotate_anticlockwise(self):
+        for block in self.blocks:
+            block.coords = self.i + 3 - (block.j - self.j), self.j + block.i - self.i
 
 
 class LShaped(Tetromino):
@@ -197,9 +201,20 @@ def main():
 
     counter = 0
     while True:
+        keys = pygame.key.get_pressed()
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_x:
+                    t_shaped.rotate_clockwise()
+                elif event.key == pygame.K_y:
+                    t_shaped.rotate_anticlockwise()
+                if event.key == pygame.K_LEFT:
+                    t_shaped.step_left()
+                if event.key == pygame.K_RIGHT:
+                    t_shaped.step_right()
 
         grid.draw_background(screen)
         grid.draw_grid(screen)
@@ -207,8 +222,8 @@ def main():
         pygame.display.flip()
         time.sleep(DELAY)
 
-        if counter == 60:
-            t_shaped.rotate()
+        if counter == 30:
+            t_shaped.step_down()
             counter = 0
 
         counter += 1
