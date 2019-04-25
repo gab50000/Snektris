@@ -195,8 +195,8 @@ def main():
     grid = Grid(300, 600)
     pygame.display.set_caption("Tetris")
 
-    t_shaped = SShaped(0, 4)
-    grid.blocks.extend(t_shaped.blocks)
+    tetromino = SShaped(0, 4)
+    grid.blocks.extend(tetromino.blocks)
 
     counter = 0
     while True:
@@ -207,13 +207,13 @@ def main():
                 return
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_x:
-                    t_shaped.rotate_clockwise()
+                    tetromino.rotate_clockwise()
                 elif event.key == pygame.K_y:
-                    t_shaped.rotate_anticlockwise()
+                    tetromino.rotate_anticlockwise()
                 if event.key == pygame.K_LEFT:
-                    t_shaped.step_left()
+                    tetromino.step_left()
                 if event.key == pygame.K_RIGHT:
-                    t_shaped.step_right()
+                    tetromino.step_right()
 
         grid.draw_background(screen)
         grid.draw_grid(screen)
@@ -222,7 +222,7 @@ def main():
         time.sleep(DELAY)
 
         if counter == 30:
-            t_shaped.step_down()
+            tetromino.step_down()
             counter = 0
 
         counter += 1
