@@ -1,8 +1,13 @@
 from itertools import product
+import logging
+import random
 import time
 
 import pygame
 from pygame.locals import QUIT, K_SPACE
+
+
+logger = logging.getLogger(__name__)
 
 
 DELAY = 1 / 30
@@ -20,9 +25,12 @@ ORANGE = (255, 165, 0)
 
 class SingleBlock:
     def __init__(self, i, j, color):
-        self.i = i + 1
-        self.j = j + 1
+        self.i = i
+        self.j = j
         self.color = color
+
+    def __repr__(self):
+        return f"SingleBlock({self.i}, {self.j}, {self.color})"
 
     @property
     def coords(self):
@@ -50,14 +58,23 @@ class Tetromino:
 
     color = ...
     initial_coords = ...
+    center = ...
 
     def __init__(self, i, j):
         self.i = i
         self.j = j
+        self._center_coords()
         self.blocks = [
             SingleBlock(self.i + i, self.j + j, self.color)
             for i, j in self.initial_coords
         ]
+
+    def __repr__(self):
+        return self.blocks.__repr__()
+
+    def _center_coords(self):
+        x, y = self.center
+        self.initial_coords = [(xx - x, yy - y) for xx, yy in self.initial_coords]
 
     def step_down(self):
         self.i += 1
@@ -75,12 +92,17 @@ class Tetromino:
             block.step_right()
 
     def rotate_clockwise(self):
+        logger.debug("Before rotation: %s", self)
         for block in self.blocks:
-            block.coords = self.i + block.j - self.j, self.j + 3 - (block.i - self.i)
+            ii = block.i - self.i
+            jj = block.j - self.j
+            block.coords = self.i + jj, self.j - ii
 
     def rotate_anticlockwise(self):
         for block in self.blocks:
-            block.coords = self.i + 3 - (block.j - self.j), self.j + block.i - self.i
+            ii = block.i - self.i
+            jj = block.j - self.j
+            block.coords = self.i - jj, self.j + ii
 
 
 # fmt: off
@@ -92,6 +114,7 @@ class LShaped(Tetromino):
         (2, 0),
         (2, 1)
     )
+    center = (1, 0)
 
 
 class JShaped(Tetromino):
@@ -102,6 +125,7 @@ class JShaped(Tetromino):
         (2, 1),
         (2, 0)
     )
+    center = (1, 1)
 
 
 class SShaped(Tetromino):
@@ -112,6 +136,7 @@ class SShaped(Tetromino):
         (1, 1),
         (2, 1)
     )
+    center = (1, 0)
 
 
 class TShaped(Tetromino):
@@ -122,6 +147,7 @@ class TShaped(Tetromino):
         (1, 1),
         (2, 1)
     )
+    center = (1, 1)
 
 
 class ZShaped(Tetromino):
@@ -132,6 +158,7 @@ class ZShaped(Tetromino):
         (1, 0),
         (2, 0)
     )
+    center = (1, 1)
 
 
 class IShaped(Tetromino):
@@ -202,7 +229,7 @@ def main():
     grid = Grid(300, 600)
     pygame.display.set_caption("Tetris")
 
-    tetromino = SShaped(0, 4)
+    tetromino = random.choice([SShaped, TShaped, ZShaped, LShaped, JShaped])(0, 4)
     grid.blocks.extend(tetromino.blocks)
 
     counter = 0
@@ -239,4 +266,5 @@ def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     main()
