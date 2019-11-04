@@ -42,7 +42,6 @@ class SingleBlock:
         self.j += 1
 
 
-
 class Tetromino:
     """
     Base class for all tetrominos.
@@ -55,8 +54,10 @@ class Tetromino:
     def __init__(self, i, j):
         self.i = i
         self.j = j
-        self.blocks = [SingleBlock(self.i + i, self.j + j, self.color)
-                       for i, j in self.initial_coords]
+        self.blocks = [
+            SingleBlock(self.i + i, self.j + j, self.color)
+            for i, j in self.initial_coords
+        ]
 
     def step_down(self):
         self.i += 1
@@ -82,6 +83,7 @@ class Tetromino:
             block.coords = self.i + 3 - (block.j - self.j), self.j + block.i - self.i
 
 
+# fmt: off
 class LShaped(Tetromino):
     color = BLUE
     initial_coords = (
@@ -150,6 +152,7 @@ class Square(Tetromino):
         (0, 1),
         (1, 1)
     )
+# fmt: on
 
 
 class Grid:
@@ -176,17 +179,21 @@ class Grid:
         pix_width = self.pixel_width
         pix_height = self.pixel_height
         for i, j in product(range(self.grid_height), range(self.grid_width)):
-            rect = pygame.Rect(j * pix_width, i * pix_height, pix_width - 1, pix_height - 1)
+            rect = pygame.Rect(
+                j * pix_width, i * pix_height, pix_width - 1, pix_height - 1
+            )
             pygame.draw.rect(screen, BACKGROUND, rect)
 
+    def draw_tetrominos(self, screen):
+        pix_width = self.pixel_width
+        pix_height = self.pixel_height
         for block in self.blocks:
             i, j = block.coords
             color = block.color
-            rect = pygame.Rect(j * pix_width, i * pix_height, pix_width - 1, pix_height - 1)
+            rect = pygame.Rect(
+                j * pix_width, i * pix_height, pix_width - 1, pix_height - 1
+            )
             pygame.draw.rect(screen, color, rect)
-
-    def draw_tetrominos(self, screen):
-        pass
 
 
 def main():
@@ -214,9 +221,12 @@ def main():
                     tetromino.step_left()
                 if event.key == pygame.K_RIGHT:
                     tetromino.step_right()
+                if event.key == pygame.K_DOWN:
+                    tetromino.step_down()
 
         grid.draw_background(screen)
         grid.draw_grid(screen)
+        grid.draw_tetrominos(screen)
 
         pygame.display.flip()
         time.sleep(DELAY)
