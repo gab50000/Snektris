@@ -110,11 +110,36 @@ class Tetromino:
             jj = block.j - self.j
             block.coords = self.i + jj, self.j - ii
 
+        self._check_boundaries()
+
     def rotate_anticlockwise(self):
         for block in self.blocks:
             ii = block.i - self.i
             jj = block.j - self.j
             block.coords = self.i - jj, self.j + ii
+
+        self._check_boundaries()
+
+    def _check_boundaries(self):
+        min_j = min(block.j for block in self.blocks)
+
+        if min_j < 0:
+            for block in self.blocks:
+                block.j -= min_j
+            return
+
+        max_j = max(block.j for block in self.blocks)
+
+        if max_j > GRID_WIDTH - 1:
+            for block in self.blocks:
+                block.j -= 1 + max_j - GRID_WIDTH
+            return
+
+        max_i = max(block.i for block in self.blocks)
+
+        if max_i > GRID_HEIGHT - 1:
+            for block in self.blocks:
+                block.i -= 1 + max_i - GRID_HEIGHT
 
 
 # fmt: off
