@@ -1,5 +1,6 @@
 from itertools import product
 import logging
+from operator import attrgetter
 import random
 import time
 
@@ -21,6 +22,9 @@ CYAN = (0, 255, 255)
 PURPLE = (128, 0, 128)
 YELLOW = (255, 255, 0)
 ORANGE = (255, 165, 0)
+
+GRID_HEIGHT = 20
+GRID_WIDTH = 10
 
 
 class SingleBlock:
@@ -68,6 +72,7 @@ class Tetromino:
             SingleBlock(self.i + i, self.j + j, self.color)
             for i, j in self.initial_coords
         ]
+        self.done = False
 
     def __repr__(self):
         return self.blocks.__repr__()
@@ -77,16 +82,23 @@ class Tetromino:
         self.initial_coords = [(xx - x, yy - y) for xx, yy in self.initial_coords]
 
     def step_down(self):
+        if max(block.i for block in self.blocks) >= GRID_HEIGHT - 1:
+            self.done = True
+            return
         self.i += 1
         for block in self.blocks:
             block.step_down()
 
     def step_left(self):
+        if min(block.j for block in self.blocks) <= 0:
+            return
         self.j -= 1
         for block in self.blocks:
             block.step_left()
 
     def step_right(self):
+        if max(block.j for block in self.blocks) >= GRID_WIDTH - 1:
+            return
         self.j += 1
         for block in self.blocks:
             block.step_right()
@@ -187,8 +199,8 @@ class Grid:
         self.height = height
         self.width = width
 
-        self.grid_height = 20
-        self.grid_width = 10
+        self.grid_height = GRID_HEIGHT
+        self.grid_width = GRID_WIDTH
 
         self.pixel_width = self.width // self.grid_width
         self.pixel_height = self.height // self.grid_height
@@ -229,40 +241,44 @@ def main():
     grid = Grid(300, 600)
     pygame.display.set_caption("Tetris")
 
-    tetromino = random.choice([SShaped, TShaped, ZShaped, LShaped, JShaped])(0, 4)
-    grid.blocks.extend(tetromino.blocks)
-
     counter = 0
-    while True:
-        keys = pygame.key.get_pressed()
+    game_over = False
 
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                return
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_x:
-                    tetromino.rotate_clockwise()
-                elif event.key == pygame.K_y:
-                    tetromino.rotate_anticlockwise()
-                if event.key == pygame.K_LEFT:
-                    tetromino.step_left()
-                if event.key == pygame.K_RIGHT:
-                    tetromino.step_right()
-                if event.key == pygame.K_DOWN:
-                    tetromino.step_down()
+    while not game_over:
 
-        grid.draw_background(screen)
-        grid.draw_grid(screen)
-        grid.draw_tetrominos(screen)
+        tetromino = random.choice([SShaped, TShaped, ZShaped, LShaped, JShaped])(0, 4)
+        grid.blocks.extend(tetromino.blocks)
 
-        pygame.display.flip()
-        time.sleep(DELAY)
+        while True:
+            keys = pygame.key.get_pressed()
 
-        if counter == 30:
-            tetromino.step_down()
-            counter = 0
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    return
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_x:
+                        tetromino.rotate_clockwise()
+                    elif event.key == pygame.K_y:
+                        tetromino.rotate_anticlockwise()
+                    if event.key == pygame.K_LEFT:
+                        tetromino.step_left()
+                    if event.key == pygame.K_RIGHT:
+                        tetromino.step_right()
+                    if event.key == pygame.K_DOWN:
+                        tetromino.step_down()
 
-        counter += 1
+            grid.draw_background(screen)
+            grid.draw_grid(screen)
+            grid.draw_tetrominos(screen)
+
+            pygame.display.flip()
+            time.sleep(DELAY)
+
+            if counter == 30:
+                tetromino.step_down()
+                counter = 0
+
+            counter += 1
 
 
 if __name__ == "__main__":
