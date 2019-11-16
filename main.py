@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 DELAY = 1 / 30
+START_POSITION = 0, 4
 
 
 class Color(Enum):
@@ -50,13 +51,13 @@ class SingleBlock:
         self.i, self.j = new_coords
 
     def step_down(self):
-        self.i += 1
+        return SingleBlock(self.i + 1, self.j, self.color)
 
     def step_left(self):
-        self.j -= 1
+        return SingleBlock(self.i, self.j - 1, self.color)
 
     def step_right(self):
-        self.j += 1
+        return SingleBlock(self.i, self.j + 1, self.color)
 
 
 class Tetromino:
@@ -88,11 +89,9 @@ class Tetromino:
         self.initial_coords = [(xx - x, yy - y) for xx, yy in self.initial_coords]
 
     def step_down(self):
-        new_blocks = [
-            SingleBlock(block.i + 1, block.j, block.color) for block in self.blocks
-        ]
+        new_blocks = [block.step_down() for block in self.blocks]
 
-        if max(block.i for block in new_blocks) >= GRID_HEIGHT:
+        if any(block.i >= GRID_HEIGHT for block in new_blocks):
             self.done = True
             return
 
@@ -104,18 +103,28 @@ class Tetromino:
         self.blocks = new_blocks
 
     def step_left(self):
-        if min(block.j for block in self.blocks) <= 0:
+        new_blocks = [block.step_left() for block in self.blocks]
+
+        if any(block.j < 0 for block in new_blocks):
             return
+
+        if any(block.coords in self.other_positions for block in new_blocks):
+            return
+
         self.j -= 1
-        for block in self.blocks:
-            block.step_left()
+        self.blocks = new_blocks
 
     def step_right(self):
-        if max(block.j for block in self.blocks) >= GRID_WIDTH - 1:
+        new_blocks = [block.step_right() for block in self.blocks]
+
+        if any(block.j > GRID_WIDTH - 1 for block in new_blocks):
             return
+
+        if any(block.coords in self.other_positions for block in new_blocks):
+            return
+
         self.j += 1
-        for block in self.blocks:
-            block.step_right()
+        self.blocks = new_blocks
 
     def rotate_clockwise(self):
         logger.debug("Before rotation: %s", self)
@@ -220,6 +229,7 @@ class IShaped(Tetromino):
         (2, 0),
         (3, 0)
     )
+    center = (1, 0)
 
 
 class Square(Tetromino):
@@ -292,8 +302,10 @@ def main():
 
     while not game_over:
 
-        tetromino_class = random.choice([SShaped, TShaped, ZShaped, LShaped, JShaped])
-        active_tetromino = tetromino_class(0, 4, grid.positions)
+        tetromino_class = random.choice(
+            [SShaped, TShaped, ZShaped, LShaped, IShaped, JShaped]
+        )
+        active_tetromino = tetromino_class(*START_POSITION, grid.positions)
         grid.active_tetromino = active_tetromino
 
         while True:
@@ -329,6 +341,9 @@ def main():
 
             if active_tetromino.done:
                 grid.update_blocks(active_tetromino.blocks)
+
+                if START_POSITION in grid.positions:
+                    game_over = True
                 break
 
 
