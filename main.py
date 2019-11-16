@@ -1,8 +1,10 @@
+from enum import Enum
 from itertools import product
 import logging
 from operator import attrgetter
 import random
 import time
+from typing import Sequence, Tuple
 
 import pygame
 from pygame.locals import QUIT, K_SPACE
@@ -13,15 +15,18 @@ logger = logging.getLogger(__name__)
 
 DELAY = 1 / 30
 
-LINE_COLOR = (200, 200, 200)
-BACKGROUND = (50, 50, 50)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-CYAN = (0, 255, 255)
-PURPLE = (128, 0, 128)
-YELLOW = (255, 255, 0)
-ORANGE = (255, 165, 0)
+
+class Color(Enum):
+    LINE_COLOR = (200, 200, 200)
+    BACKGROUND = (50, 50, 50)
+    RED = (255, 0, 0)
+    GREEN = (0, 255, 0)
+    BLUE = (0, 0, 255)
+    CYAN = (0, 255, 255)
+    PURPLE = (128, 0, 128)
+    YELLOW = (255, 255, 0)
+    ORANGE = (255, 165, 0)
+
 
 GRID_HEIGHT = 20
 GRID_WIDTH = 10
@@ -60,11 +65,11 @@ class Tetromino:
     Each tetromino needs a color and coordinates.
     """
 
-    color = ...
-    initial_coords = ...
-    center = ...
+    color: Color
+    initial_coords: Sequence[Tuple[int, int]]
+    center: Tuple[int, int]
 
-    def __init__(self, i, j):
+    def __init__(self, i, j, other_positions):
         self.i = i
         self.j = j
         self._center_coords()
@@ -72,6 +77,7 @@ class Tetromino:
             SingleBlock(self.i + i, self.j + j, self.color)
             for i, j in self.initial_coords
         ]
+        self.other_positions = other_positions
         self.done = False
 
     def __repr__(self):
@@ -82,12 +88,20 @@ class Tetromino:
         self.initial_coords = [(xx - x, yy - y) for xx, yy in self.initial_coords]
 
     def step_down(self):
-        if max(block.i for block in self.blocks) >= GRID_HEIGHT - 1:
+        new_blocks = [
+            SingleBlock(block.i + 1, block.j, block.color) for block in self.blocks
+        ]
+
+        if max(block.i for block in new_blocks) >= GRID_HEIGHT:
             self.done = True
             return
+
+        if any(block.coords in self.other_positions for block in new_blocks):
+            self.done = True
+            return
+
         self.i += 1
-        for block in self.blocks:
-            block.step_down()
+        self.blocks = new_blocks
 
     def step_left(self):
         if min(block.j for block in self.blocks) <= 0:
@@ -144,7 +158,7 @@ class Tetromino:
 
 # fmt: off
 class LShaped(Tetromino):
-    color = BLUE
+    color = Color.BLUE
     initial_coords = (
         (0, 0),
         (1, 0),
@@ -155,7 +169,7 @@ class LShaped(Tetromino):
 
 
 class JShaped(Tetromino):
-    color = ORANGE
+    color = Color.ORANGE
     initial_coords = (
         (0, 1),
         (1, 1),
@@ -166,7 +180,7 @@ class JShaped(Tetromino):
 
 
 class SShaped(Tetromino):
-    color = GREEN
+    color = Color.GREEN
     initial_coords = (
         (0, 0),
         (1, 0),
@@ -177,7 +191,7 @@ class SShaped(Tetromino):
 
 
 class TShaped(Tetromino):
-    color = PURPLE
+    color = Color.PURPLE
     initial_coords = (
         (0, 1),
         (1, 0),
@@ -188,7 +202,7 @@ class TShaped(Tetromino):
 
 
 class ZShaped(Tetromino):
-    color = RED
+    color = Color.RED
     initial_coords = (
         (0, 1),
         (1, 1),
@@ -199,7 +213,7 @@ class ZShaped(Tetromino):
 
 
 class IShaped(Tetromino):
-    color = CYAN
+    color = Color.CYAN
     initial_coords = (
         (0, 0),
         (1, 0),
@@ -209,7 +223,7 @@ class IShaped(Tetromino):
 
 
 class Square(Tetromino):
-    color = YELLOW
+    color = Color.YELLOW
     initial_coords = (
         (0, 0),
         (1, 0),
@@ -231,12 +245,14 @@ class Grid:
         self.pixel_height = self.height // self.grid_height
 
         self.blocks = []
+        self.positions = set()
+        self.active_tetromino = None
 
     @staticmethod
     def draw_background(screen):
         background = pygame.Surface(screen.get_size())
         background = background.convert()
-        background.fill(LINE_COLOR)
+        background.fill(Color.LINE_COLOR.value)
         screen.blit(background, (0, 0))
 
     def draw_grid(self, screen):
@@ -246,18 +262,23 @@ class Grid:
             rect = pygame.Rect(
                 j * pix_width, i * pix_height, pix_width - 1, pix_height - 1
             )
-            pygame.draw.rect(screen, BACKGROUND, rect)
+            pygame.draw.rect(screen, Color.BACKGROUND.value, rect)
 
     def draw_tetrominos(self, screen):
         pix_width = self.pixel_width
         pix_height = self.pixel_height
-        for block in self.blocks:
+        for block in [*self.active_tetromino.blocks, *self.blocks]:
             i, j = block.coords
             color = block.color
             rect = pygame.Rect(
                 j * pix_width, i * pix_height, pix_width - 1, pix_height - 1
             )
-            pygame.draw.rect(screen, color, rect)
+            pygame.draw.rect(screen, color.value, rect)
+
+    def update_blocks(self, new_blocks):
+        self.blocks.extend(new_blocks)
+        for block in new_blocks:
+            self.positions.add(block.coords)
 
 
 def main():
@@ -271,8 +292,9 @@ def main():
 
     while not game_over:
 
-        tetromino = random.choice([SShaped, TShaped, ZShaped, LShaped, JShaped])(0, 4)
-        grid.blocks.extend(tetromino.blocks)
+        tetromino_class = random.choice([SShaped, TShaped, ZShaped, LShaped, JShaped])
+        active_tetromino = tetromino_class(0, 4, grid.positions)
+        grid.active_tetromino = active_tetromino
 
         while True:
             keys = pygame.key.get_pressed()
@@ -282,15 +304,15 @@ def main():
                     return
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_x:
-                        tetromino.rotate_clockwise()
+                        active_tetromino.rotate_clockwise()
                     elif event.key == pygame.K_y:
-                        tetromino.rotate_anticlockwise()
+                        active_tetromino.rotate_anticlockwise()
                     if event.key == pygame.K_LEFT:
-                        tetromino.step_left()
+                        active_tetromino.step_left()
                     if event.key == pygame.K_RIGHT:
-                        tetromino.step_right()
+                        active_tetromino.step_right()
                     if event.key == pygame.K_DOWN:
-                        tetromino.step_down()
+                        active_tetromino.step_down()
 
             grid.draw_background(screen)
             grid.draw_grid(screen)
@@ -300,10 +322,14 @@ def main():
             time.sleep(DELAY)
 
             if counter == 30:
-                tetromino.step_down()
+                active_tetromino.step_down()
                 counter = 0
 
             counter += 1
+
+            if active_tetromino.done:
+                grid.update_blocks(active_tetromino.blocks)
+                break
 
 
 if __name__ == "__main__":
