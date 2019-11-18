@@ -4,7 +4,7 @@ import logging
 from operator import attrgetter
 import random
 import time
-from typing import Sequence, Tuple
+from typing import Sequence, Tuple, Set
 
 import pygame
 from pygame.locals import QUIT, K_SPACE
@@ -99,74 +99,39 @@ class Tetromino:
         x, y = self.center
         self.initial_coords = [(xx - x, yy - y) for xx, yy in self.initial_coords]
 
-    def step_down(self, other_positions):
+    def step_down(self):
         new_blocks = [block.step_down() for block in self.blocks]
-
-        if any(block.i >= GRID_HEIGHT for block in new_blocks):
-            self.done = True
-            return self
-
-        if any(block.coords in other_positions for block in new_blocks):
-            self.done = True
-            return self
-
         return self.__class__(self.i + 1, self.j, new_blocks)
 
     def fall_down(self, other_positions):
-        new_blocks = [block.step_down() for block in self.blocks]
+        new_piece = self.step_down()
 
-        if any(block.i >= GRID_HEIGHT for block in new_blocks):
-            self.done = True
-            return
-
-        if any(block.coords in other_positions for block in new_blocks):
-            self.done = True
-            return
-
-        self.i += 1
-        self.blocks = new_blocks
-
-    def step_left(self, other_positions):
-        new_blocks = [block.step_left() for block in self.blocks]
-
-        if any(block.j < 0 for block in new_blocks):
-            return
-
-        if any(block.coords in other_positions for block in new_blocks):
-            return
-
-        return self.__class__(self.i, self.j - 1, new_blocks)
-
-    def step_right(self, other_positions):
-        new_blocks = [block.step_right() for block in self.blocks]
-
-        if any(block.j > GRID_WIDTH - 1 for block in new_blocks):
-            return
-
-        if any(block.coords in other_positions for block in new_blocks):
-            return
-
-        return self.__class__(self.i, self.j + 1, new_blocks)
-
-    def rotate_clockwise(self, other_positions):
-        logger.debug("Before rotation: %s", self)
-        new_blocks = [block.rotate_clockwise(self.i, self.j) for block in self.blocks]
-        new_piece = self.__class__(self.i, self.j, new_blocks)
-
-        if new_piece.within_boundaries():
-            return new_piece
+        if new_piece.within_boundaries() and not new_piece.overlaps_with(
+            other_positions
+        ):
+            return new_piece.fall_down(other_positions)
+        self.done = True
         return self
 
-    def rotate_anticlockwise(self, other_positions):
+    def step_left(self):
+        new_blocks = [block.step_left() for block in self.blocks]
+        return self.__class__(self.i, self.j - 1, new_blocks)
+
+    def step_right(self):
+        new_blocks = [block.step_right() for block in self.blocks]
+        return self.__class__(self.i, self.j + 1, new_blocks)
+
+    def rotate_clockwise(self):
+        logger.debug("Before rotation: %s", self)
+        new_blocks = [block.rotate_clockwise(self.i, self.j) for block in self.blocks]
+        return self.__class__(self.i, self.j, new_blocks)
+
+    def rotate_anticlockwise(self):
         logger.debug("Before rotation: %s", self)
         new_blocks = [
             block.rotate_anticlockwise(self.i, self.j) for block in self.blocks
         ]
-        new_piece = self.__class__(self.i, self.j, new_blocks)
-
-        if new_piece.within_boundaries():
-            return new_piece
-        return self
+        return self.__class__(self.i, self.j, new_blocks)
 
     def within_boundaries(self):
         for block in self.blocks:
@@ -179,6 +144,9 @@ class Tetromino:
             if block.i > GRID_HEIGHT - 1:
                 return False
         return True
+
+    def overlaps_with(self, other_blocks: Set[SingleBlock]):
+        return any(block.coords in other_blocks for block in self.blocks)
 
 
 # fmt: off
@@ -326,29 +294,34 @@ def main():
                 if event.type == QUIT:
                     return
 
+                new_tetromino = None
+
                 if event.type == pygame.KEYDOWN:
 
                     if event.key == pygame.K_x:
-                        active_tetromino = active_tetromino.rotate_clockwise(
-                            grid.positions
-                        )
+                        new_tetromino = active_tetromino.rotate_clockwise()
 
                     elif event.key == pygame.K_y:
-                        active_tetromino = active_tetromino.rotate_anticlockwise(
-                            grid.positions
-                        )
+                        new_tetromino = active_tetromino.rotate_anticlockwise()
 
                     if event.key == pygame.K_LEFT:
-                        active_tetromino = active_tetromino.step_left(grid.positions)
+                        new_tetromino = active_tetromino.step_left()
 
                     if event.key == pygame.K_RIGHT:
-                        active_tetromino = active_tetromino.step_right(grid.positions)
+                        new_tetromino = active_tetromino.step_right()
 
                     if event.key == pygame.K_DOWN:
-                        active_tetromino = active_tetromino.step_down(grid.positions)
+                        new_tetromino = active_tetromino.step_down()
 
                     if event.key == pygame.K_UP:
-                        active_tetromino = active_tetromino.fall_down(grid.positions)
+                        new_tetromino = active_tetromino.fall_down(grid.positions)
+
+            if (
+                new_tetromino
+                and new_tetromino.within_boundaries()
+                and not new_tetromino.overlaps_with(grid.positions)
+            ):
+                active_tetromino = new_tetromino
 
             grid.draw_background(screen)
             grid.draw_grid(screen)
@@ -358,7 +331,14 @@ def main():
             time.sleep(DELAY)
 
             if counter == 30:
-                active_tetromino = active_tetromino.step_down(grid.positions)
+                new_tetromino = active_tetromino.step_down()
+                if new_tetromino.within_boundaries() and not new_tetromino.overlaps_with(
+                    grid.positions
+                ):
+                    active_tetromino = new_tetromino
+                else:
+                    active_tetromino.done = True
+
                 counter = 0
 
             counter += 1
