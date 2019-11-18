@@ -4,7 +4,7 @@ import logging
 from operator import attrgetter
 import random
 import time
-from typing import Sequence, Tuple, Set
+from typing import Sequence, Tuple, Dict
 
 import pygame
 from pygame.locals import QUIT, K_SPACE
@@ -15,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 DELAY = 1 / 30
 START_POSITION = 0, 4
+
+GRID_HEIGHT = 20
+GRID_WIDTH = 10
 
 
 class Color(Enum):
@@ -27,10 +30,6 @@ class Color(Enum):
     PURPLE = (128, 0, 128)
     YELLOW = (255, 255, 0)
     ORANGE = (255, 165, 0)
-
-
-GRID_HEIGHT = 20
-GRID_WIDTH = 10
 
 
 class SingleBlock:
@@ -145,7 +144,7 @@ class Tetromino:
                 return False
         return True
 
-    def overlaps_with(self, other_blocks: Set[SingleBlock]):
+    def overlaps_with(self, other_blocks: Dict[Tuple[int, int], SingleBlock]):
         return any(block.coords in other_blocks for block in self.blocks)
 
 
@@ -232,8 +231,7 @@ class Grid:
         self.pixel_width = self.width // self.grid_width
         self.pixel_height = self.height // self.grid_height
 
-        self.blocks = []
-        self.positions = set()
+        self.blocks = {}
         self.active_tetromino = None
 
     @staticmethod
@@ -255,7 +253,7 @@ class Grid:
     def draw_tetrominos(self, screen, active_tetromino):
         pix_width = self.pixel_width
         pix_height = self.pixel_height
-        for block in [*active_tetromino.blocks, *self.blocks]:
+        for block in [*active_tetromino.blocks, *self.blocks.values()]:
             i, j = block.coords
             color = block.color
             rect = pygame.Rect(
@@ -264,9 +262,25 @@ class Grid:
             pygame.draw.rect(screen, color.value, rect)
 
     def update_blocks(self, new_blocks):
-        self.blocks.extend(new_blocks)
         for block in new_blocks:
-            self.positions.add(block.coords)
+            self.blocks[block.coords] = block
+
+    def clear_lines(self):
+        lines_to_be_deleted = []
+        new_blocks = {}
+
+        for i in range(GRID_HEIGHT):
+            if all((i, j) in self.blocks for j in range(GRID_WIDTH)):
+                lines_to_be_deleted.append(i)
+
+        if lines_to_be_deleted:
+            for i in sorted(lines_to_be_deleted, reverse=True):
+                for (ii, jj), block in self.blocks.items():
+                    if ii < i:
+                        new_blocks[(ii + 1, jj)] = block.step_down()
+                    elif ii != i:
+                        new_blocks[(ii, jj)] = block
+            self.blocks = new_blocks
 
 
 def main():
@@ -314,12 +328,12 @@ def main():
                         new_tetromino = active_tetromino.step_down()
 
                     if event.key == pygame.K_UP:
-                        new_tetromino = active_tetromino.fall_down(grid.positions)
+                        new_tetromino = active_tetromino.fall_down(grid.blocks)
 
             if (
                 new_tetromino
                 and new_tetromino.within_boundaries()
-                and not new_tetromino.overlaps_with(grid.positions)
+                and not new_tetromino.overlaps_with(grid.blocks)
             ):
                 active_tetromino = new_tetromino
 
@@ -333,7 +347,7 @@ def main():
             if counter == 30:
                 new_tetromino = active_tetromino.step_down()
                 if new_tetromino.within_boundaries() and not new_tetromino.overlaps_with(
-                    grid.positions
+                    grid.blocks
                 ):
                     active_tetromino = new_tetromino
                 else:
@@ -346,9 +360,11 @@ def main():
             if active_tetromino.done:
                 grid.update_blocks(active_tetromino.blocks)
 
-                if START_POSITION in grid.positions:
+                if START_POSITION in grid.blocks:
                     game_over = True
                 break
+
+            grid.clear_lines()
 
 
 if __name__ == "__main__":
