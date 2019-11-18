@@ -59,6 +59,16 @@ class SingleBlock:
     def step_right(self):
         return SingleBlock(self.i, self.j + 1, self.color)
 
+    def rotate_clockwise(self, i, j):
+        ii = self.i - i
+        jj = self.j - j
+        return SingleBlock(i + jj, j - ii, self.color)
+
+    def rotate_anticlockwise(self, i, j):
+        ii = self.i - i
+        jj = self.j - j
+        return SingleBlock(i - jj, j + ii, self.color)
+
 
 class Tetromino:
     """
@@ -70,15 +80,16 @@ class Tetromino:
     initial_coords: Sequence[Tuple[int, int]]
     center: Tuple[int, int]
 
-    def __init__(self, i, j, other_positions):
+    def __init__(self, i, j, blocks=None):
         self.i = i
         self.j = j
-        self._center_coords()
-        self.blocks = [
-            SingleBlock(self.i + i, self.j + j, self.color)
-            for i, j in self.initial_coords
-        ]
-        self.other_positions = other_positions
+        if blocks:
+            self.blocks = blocks
+        else:
+            self.blocks = [
+                SingleBlock(self.i + i, self.j + j, self.color)
+                for i, j in self.initial_coords
+            ]
         self.done = False
 
     def __repr__(self):
@@ -88,148 +99,147 @@ class Tetromino:
         x, y = self.center
         self.initial_coords = [(xx - x, yy - y) for xx, yy in self.initial_coords]
 
-    def step_down(self):
+    def step_down(self, other_positions):
+        new_blocks = [block.step_down() for block in self.blocks]
+
+        if any(block.i >= GRID_HEIGHT for block in new_blocks):
+            self.done = True
+            return self
+
+        if any(block.coords in other_positions for block in new_blocks):
+            self.done = True
+            return self
+
+        return self.__class__(self.i + 1, self.j, new_blocks)
+
+    def fall_down(self, other_positions):
         new_blocks = [block.step_down() for block in self.blocks]
 
         if any(block.i >= GRID_HEIGHT for block in new_blocks):
             self.done = True
             return
 
-        if any(block.coords in self.other_positions for block in new_blocks):
+        if any(block.coords in other_positions for block in new_blocks):
             self.done = True
             return
 
         self.i += 1
         self.blocks = new_blocks
 
-    def step_left(self):
+    def step_left(self, other_positions):
         new_blocks = [block.step_left() for block in self.blocks]
 
         if any(block.j < 0 for block in new_blocks):
             return
 
-        if any(block.coords in self.other_positions for block in new_blocks):
+        if any(block.coords in other_positions for block in new_blocks):
             return
 
-        self.j -= 1
-        self.blocks = new_blocks
+        return self.__class__(self.i, self.j - 1, new_blocks)
 
-    def step_right(self):
+    def step_right(self, other_positions):
         new_blocks = [block.step_right() for block in self.blocks]
 
         if any(block.j > GRID_WIDTH - 1 for block in new_blocks):
             return
 
-        if any(block.coords in self.other_positions for block in new_blocks):
+        if any(block.coords in other_positions for block in new_blocks):
             return
 
-        self.j += 1
-        self.blocks = new_blocks
+        return self.__class__(self.i, self.j + 1, new_blocks)
 
-    def rotate_clockwise(self):
+    def rotate_clockwise(self, other_positions):
         logger.debug("Before rotation: %s", self)
+        new_blocks = [block.rotate_clockwise(self.i, self.j) for block in self.blocks]
+        new_piece = self.__class__(self.i, self.j, new_blocks)
+
+        if new_piece.within_boundaries():
+            return new_piece
+        return self
+
+    def rotate_anticlockwise(self, other_positions):
+        logger.debug("Before rotation: %s", self)
+        new_blocks = [
+            block.rotate_anticlockwise(self.i, self.j) for block in self.blocks
+        ]
+        new_piece = self.__class__(self.i, self.j, new_blocks)
+
+        if new_piece.within_boundaries():
+            return new_piece
+        return self
+
+    def within_boundaries(self):
         for block in self.blocks:
-            ii = block.i - self.i
-            jj = block.j - self.j
-            block.coords = self.i + jj, self.j - ii
+            if block.j < 0:
+                return False
 
-        self._check_boundaries()
+            if block.j > GRID_WIDTH - 1:
+                return False
 
-    def rotate_anticlockwise(self):
-        for block in self.blocks:
-            ii = block.i - self.i
-            jj = block.j - self.j
-            block.coords = self.i - jj, self.j + ii
-
-        self._check_boundaries()
-
-    def _check_boundaries(self):
-        min_j = min(block.j for block in self.blocks)
-
-        if min_j < 0:
-            for block in self.blocks:
-                block.j -= min_j
-            return
-
-        max_j = max(block.j for block in self.blocks)
-
-        if max_j > GRID_WIDTH - 1:
-            for block in self.blocks:
-                block.j -= 1 + max_j - GRID_WIDTH
-            return
-
-        max_i = max(block.i for block in self.blocks)
-
-        if max_i > GRID_HEIGHT - 1:
-            for block in self.blocks:
-                block.i -= 1 + max_i - GRID_HEIGHT
+            if block.i > GRID_HEIGHT - 1:
+                return False
+        return True
 
 
 # fmt: off
 class LShaped(Tetromino):
     color = Color.BLUE
     initial_coords = (
+        (-1, 0),
         (0, 0),
         (1, 0),
-        (2, 0),
-        (2, 1)
+        (1, 1)
     )
-    center = (1, 0)
 
 
 class JShaped(Tetromino):
     color = Color.ORANGE
     initial_coords = (
-        (0, 1),
-        (1, 1),
-        (2, 1),
-        (2, 0)
+        (-1, 0),
+        (0, 0),
+        (1, 0),
+        (1, -1)
     )
-    center = (1, 1)
 
 
 class SShaped(Tetromino):
     color = Color.GREEN
     initial_coords = (
+        (-1, 0),
         (0, 0),
-        (1, 0),
-        (1, 1),
-        (2, 1)
+        (0, 1),
+        (1, 1)
     )
-    center = (1, 0)
 
 
 class TShaped(Tetromino):
     color = Color.PURPLE
     initial_coords = (
-        (0, 1),
-        (1, 0),
-        (1, 1),
-        (2, 1)
+        (-1, 0),
+        (0, -1),
+        (0, 0),
+        (1, 0)
     )
-    center = (1, 1)
 
 
 class ZShaped(Tetromino):
     color = Color.RED
     initial_coords = (
-        (0, 1),
-        (1, 1),
-        (1, 0),
-        (2, 0)
+        (-1, 0),
+        (0, 0),
+        (0, -1),
+        (1, -1)
     )
-    center = (1, 1)
 
 
 class IShaped(Tetromino):
     color = Color.CYAN
     initial_coords = (
+        (-1, 0),
         (0, 0),
         (1, 0),
-        (2, 0),
-        (3, 0)
+        (2, 0)
     )
-    center = (1, 0)
 
 
 class Square(Tetromino):
@@ -274,10 +284,10 @@ class Grid:
             )
             pygame.draw.rect(screen, Color.BACKGROUND.value, rect)
 
-    def draw_tetrominos(self, screen):
+    def draw_tetrominos(self, screen, active_tetromino):
         pix_width = self.pixel_width
         pix_height = self.pixel_height
-        for block in [*self.active_tetromino.blocks, *self.blocks]:
+        for block in [*active_tetromino.blocks, *self.blocks]:
             i, j = block.coords
             color = block.color
             rect = pygame.Rect(
@@ -305,36 +315,50 @@ def main():
         tetromino_class = random.choice(
             [SShaped, TShaped, ZShaped, LShaped, IShaped, JShaped]
         )
-        active_tetromino = tetromino_class(*START_POSITION, grid.positions)
+        active_tetromino = tetromino_class(*START_POSITION)
         grid.active_tetromino = active_tetromino
 
         while True:
             keys = pygame.key.get_pressed()
 
             for event in pygame.event.get():
+
                 if event.type == QUIT:
                     return
+
                 if event.type == pygame.KEYDOWN:
+
                     if event.key == pygame.K_x:
-                        active_tetromino.rotate_clockwise()
+                        active_tetromino = active_tetromino.rotate_clockwise(
+                            grid.positions
+                        )
+
                     elif event.key == pygame.K_y:
-                        active_tetromino.rotate_anticlockwise()
+                        active_tetromino = active_tetromino.rotate_anticlockwise(
+                            grid.positions
+                        )
+
                     if event.key == pygame.K_LEFT:
-                        active_tetromino.step_left()
+                        active_tetromino = active_tetromino.step_left(grid.positions)
+
                     if event.key == pygame.K_RIGHT:
-                        active_tetromino.step_right()
+                        active_tetromino = active_tetromino.step_right(grid.positions)
+
                     if event.key == pygame.K_DOWN:
-                        active_tetromino.step_down()
+                        active_tetromino = active_tetromino.step_down(grid.positions)
+
+                    if event.key == pygame.K_UP:
+                        active_tetromino = active_tetromino.fall_down(grid.positions)
 
             grid.draw_background(screen)
             grid.draw_grid(screen)
-            grid.draw_tetrominos(screen)
+            grid.draw_tetrominos(screen, active_tetromino)
 
             pygame.display.flip()
             time.sleep(DELAY)
 
             if counter == 30:
-                active_tetromino.step_down()
+                active_tetromino = active_tetromino.step_down(grid.positions)
                 counter = 0
 
             counter += 1
