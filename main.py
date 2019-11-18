@@ -77,7 +77,6 @@ class Tetromino:
 
     color: Color
     initial_coords: Sequence[Tuple[int, int]]
-    center: Tuple[int, int]
 
     def __init__(self, i, j, blocks=None):
         self.i = i
@@ -93,10 +92,6 @@ class Tetromino:
 
     def __repr__(self):
         return self.blocks.__repr__()
-
-    def _center_coords(self):
-        x, y = self.center
-        self.initial_coords = [(xx - x, yy - y) for xx, yy in self.initial_coords]
 
     def step_down(self):
         new_blocks = [block.step_down() for block in self.blocks]
