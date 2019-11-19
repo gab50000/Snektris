@@ -220,10 +220,10 @@ class OShaped(Snektromino):
     )
 
     def rotate_clockwise(self):
-        pass
+        return self
 
     def rotate_anticlockwise(self):
-        pass
+        return self
 
 # fmt: on
 
