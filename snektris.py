@@ -204,7 +204,7 @@ class IShaped(Snektromino):
     )
 
 
-class Square(Snektromino):
+class OShaped(Snektromino):
     color = Color.YELLOW
     initial_coords = (
         (0, 0),
@@ -212,6 +212,13 @@ class Square(Snektromino):
         (0, 1),
         (1, 1)
     )
+
+    def rotate_clockwise(self):
+        pass
+
+    def rotate_anticlockwise(self):
+        pass
+
 # fmt: on
 
 
@@ -299,7 +306,7 @@ def main():
     while not game_over:
 
         snektromino_class = random.choice(
-            [SShaped, TShaped, ZShaped, LShaped, IShaped, JShaped]
+            [SShaped, TShaped, ZShaped, LShaped, IShaped, JShaped, OShaped]
         )
         active_snektromino = snektromino_class(*START_POSITION)
         grid.active_snektromino = active_snektromino
