@@ -262,19 +262,28 @@ class Grid:
 
     def clear_lines(self):
         lines_to_be_deleted = []
+        steps_to_take = [0] * GRID_HEIGHT
         new_blocks = {}
 
-        for i in range(GRID_HEIGHT):
+        steps = 0
+        for i in reversed(range(GRID_HEIGHT)):
+            steps_to_take[i] = steps
             if all((i, j) in self.blocks for j in range(GRID_WIDTH)):
                 lines_to_be_deleted.append(i)
+                steps += 1
 
         if lines_to_be_deleted:
-            for i in sorted(lines_to_be_deleted, reverse=True):
-                for (ii, jj), block in self.blocks.items():
-                    if ii < i:
-                        new_blocks[(ii + 1, jj)] = block.step_down()
-                    elif ii != i:
-                        new_blocks[(ii, jj)] = block
+
+            for (ii, jj), block in self.blocks.items():
+                if ii in lines_to_be_deleted:
+                    continue
+
+                new_block = block
+                steps = steps_to_take[ii]
+                for _ in range(steps):
+                    new_block = new_block.step_down()
+                new_blocks[(ii + steps, jj)] = new_block
+
             self.blocks = new_blocks
 
 
