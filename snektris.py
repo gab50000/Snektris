@@ -304,7 +304,7 @@ def main():
     pygame.display.init()
     screen = pygame.display.set_mode((300, 600))
     grid = Grid(300, 600)
-    pygame.display.set_caption("Tetris")
+    pygame.display.set_caption("Snektris")
 
     counter = 0
     game_over = False
