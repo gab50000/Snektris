@@ -300,6 +300,31 @@ class Grid:
             self.blocks = new_blocks
 
 
+def process_input(event, active_snektromino, blocks):
+    new_snektromino = None
+
+    if event.type == pygame.KEYDOWN:
+
+        if event.key == pygame.K_x:
+            new_snektromino = active_snektromino.rotate_clockwise()
+
+        elif event.key == pygame.K_y:
+            new_snektromino = active_snektromino.rotate_anticlockwise()
+
+        if event.key == pygame.K_LEFT:
+            new_snektromino = active_snektromino.step_left()
+
+        if event.key == pygame.K_RIGHT:
+            new_snektromino = active_snektromino.step_right()
+
+        if event.key == pygame.K_DOWN:
+            new_snektromino = active_snektromino.step_down()
+
+        if event.key == pygame.K_UP:
+            new_snektromino = active_snektromino.fall_down(blocks)
+    return new_snektromino
+
+
 def main():
     pygame.display.init()
     screen = pygame.display.set_mode((300, 600))
@@ -325,27 +350,7 @@ def main():
                 if event.type == QUIT:
                     return
 
-                new_snektromino = None
-
-                if event.type == pygame.KEYDOWN:
-
-                    if event.key == pygame.K_x:
-                        new_snektromino = active_snektromino.rotate_clockwise()
-
-                    elif event.key == pygame.K_y:
-                        new_snektromino = active_snektromino.rotate_anticlockwise()
-
-                    if event.key == pygame.K_LEFT:
-                        new_snektromino = active_snektromino.step_left()
-
-                    if event.key == pygame.K_RIGHT:
-                        new_snektromino = active_snektromino.step_right()
-
-                    if event.key == pygame.K_DOWN:
-                        new_snektromino = active_snektromino.step_down()
-
-                    if event.key == pygame.K_UP:
-                        new_snektromino = active_snektromino.fall_down(grid.blocks)
+                new_snektromino = process_input(event, active_snektromino, grid.blocks)
 
             if (
                 new_snektromino
