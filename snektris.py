@@ -69,10 +69,10 @@ class SingleBlock:
         return SingleBlock(i - jj, j + ii, self.color)
 
 
-class Tetromino:
+class Snektromino:
     """
-    Base class for all tetrominos.
-    Each tetromino needs a color and coordinates.
+    Base class for all snektrominos.
+    Each snektromino needs a color and coordinates.
     """
 
     color: Color
@@ -144,7 +144,7 @@ class Tetromino:
 
 
 # fmt: off
-class LShaped(Tetromino):
+class LShaped(Snektromino):
     color = Color.BLUE
     initial_coords = (
         (-1, 0),
@@ -154,7 +154,7 @@ class LShaped(Tetromino):
     )
 
 
-class JShaped(Tetromino):
+class JShaped(Snektromino):
     color = Color.ORANGE
     initial_coords = (
         (-1, 0),
@@ -164,7 +164,7 @@ class JShaped(Tetromino):
     )
 
 
-class SShaped(Tetromino):
+class SShaped(Snektromino):
     color = Color.GREEN
     initial_coords = (
         (-1, 0),
@@ -174,7 +174,7 @@ class SShaped(Tetromino):
     )
 
 
-class TShaped(Tetromino):
+class TShaped(Snektromino):
     color = Color.PURPLE
     initial_coords = (
         (-1, 0),
@@ -184,7 +184,7 @@ class TShaped(Tetromino):
     )
 
 
-class ZShaped(Tetromino):
+class ZShaped(Snektromino):
     color = Color.RED
     initial_coords = (
         (-1, 0),
@@ -194,7 +194,7 @@ class ZShaped(Tetromino):
     )
 
 
-class IShaped(Tetromino):
+class IShaped(Snektromino):
     color = Color.CYAN
     initial_coords = (
         (-1, 0),
@@ -204,7 +204,7 @@ class IShaped(Tetromino):
     )
 
 
-class Square(Tetromino):
+class Square(Snektromino):
     color = Color.YELLOW
     initial_coords = (
         (0, 0),
@@ -227,7 +227,7 @@ class Grid:
         self.pixel_height = self.height // self.grid_height
 
         self.blocks = {}
-        self.active_tetromino = None
+        self.active_snektromino = None
 
     @staticmethod
     def draw_background(screen):
@@ -245,10 +245,10 @@ class Grid:
             )
             pygame.draw.rect(screen, Color.BACKGROUND.value, rect)
 
-    def draw_tetrominos(self, screen, active_tetromino):
+    def draw_snektrominos(self, screen, active_snektromino):
         pix_width = self.pixel_width
         pix_height = self.pixel_height
-        for block in [*active_tetromino.blocks, *self.blocks.values()]:
+        for block in [*active_snektromino.blocks, *self.blocks.values()]:
             i, j = block.coords
             color = block.color
             rect = pygame.Rect(
@@ -289,11 +289,11 @@ def main():
 
     while not game_over:
 
-        tetromino_class = random.choice(
+        snektromino_class = random.choice(
             [SShaped, TShaped, ZShaped, LShaped, IShaped, JShaped]
         )
-        active_tetromino = tetromino_class(*START_POSITION)
-        grid.active_tetromino = active_tetromino
+        active_snektromino = snektromino_class(*START_POSITION)
+        grid.active_snektromino = active_snektromino
 
         while True:
             keys = pygame.key.get_pressed()
@@ -303,57 +303,57 @@ def main():
                 if event.type == QUIT:
                     return
 
-                new_tetromino = None
+                new_snektromino = None
 
                 if event.type == pygame.KEYDOWN:
 
                     if event.key == pygame.K_x:
-                        new_tetromino = active_tetromino.rotate_clockwise()
+                        new_snektromino = active_snektromino.rotate_clockwise()
 
                     elif event.key == pygame.K_y:
-                        new_tetromino = active_tetromino.rotate_anticlockwise()
+                        new_snektromino = active_snektromino.rotate_anticlockwise()
 
                     if event.key == pygame.K_LEFT:
-                        new_tetromino = active_tetromino.step_left()
+                        new_snektromino = active_snektromino.step_left()
 
                     if event.key == pygame.K_RIGHT:
-                        new_tetromino = active_tetromino.step_right()
+                        new_snektromino = active_snektromino.step_right()
 
                     if event.key == pygame.K_DOWN:
-                        new_tetromino = active_tetromino.step_down()
+                        new_snektromino = active_snektromino.step_down()
 
                     if event.key == pygame.K_UP:
-                        new_tetromino = active_tetromino.fall_down(grid.blocks)
+                        new_snektromino = active_snektromino.fall_down(grid.blocks)
 
             if (
-                new_tetromino
-                and new_tetromino.within_boundaries()
-                and not new_tetromino.overlaps_with(grid.blocks)
+                new_snektromino
+                and new_snektromino.within_boundaries()
+                and not new_snektromino.overlaps_with(grid.blocks)
             ):
-                active_tetromino = new_tetromino
+                active_snektromino = new_snektromino
 
             grid.draw_background(screen)
             grid.draw_grid(screen)
-            grid.draw_tetrominos(screen, active_tetromino)
+            grid.draw_snektrominos(screen, active_snektromino)
 
             pygame.display.flip()
             time.sleep(DELAY)
 
             if counter == 30:
-                new_tetromino = active_tetromino.step_down()
-                if new_tetromino.within_boundaries() and not new_tetromino.overlaps_with(
+                new_snektromino = active_snektromino.step_down()
+                if new_snektromino.within_boundaries() and not new_snektromino.overlaps_with(
                     grid.blocks
                 ):
-                    active_tetromino = new_tetromino
+                    active_snektromino = new_snektromino
                 else:
-                    active_tetromino.done = True
+                    active_snektromino.done = True
 
                 counter = 0
 
             counter += 1
 
-            if active_tetromino.done:
-                grid.update_blocks(active_tetromino.blocks)
+            if active_snektromino.done:
+                grid.update_blocks(active_snektromino.blocks)
 
                 if START_POSITION in grid.blocks:
                     game_over = True
