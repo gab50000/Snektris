@@ -12,3 +12,5 @@ requires = [
     "pygame == 1.9.6"
 ]
 
+[tool.flit.scripts]
+snektris = "snektris:main"
