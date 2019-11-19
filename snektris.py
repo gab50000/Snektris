@@ -154,19 +154,19 @@ class LShaped(Snektromino):
     color = Color.BLUE
     initial_coords = (
         (-1, 0),
-        (0, 0),
-        (1, 0),
-        (1, 1)
+        ( 0, 0),
+        ( 1, 0),
+        ( 1, 1)
     )
 
 
 class JShaped(Snektromino):
     color = Color.ORANGE
     initial_coords = (
-        (-1, 0),
-        (0, 0),
-        (1, 0),
-        (1, -1)
+        (-1,  0),
+        ( 0,  0),
+        ( 1,  0),
+        ( 1, -1)
     )
 
 
@@ -174,29 +174,29 @@ class SShaped(Snektromino):
     color = Color.GREEN
     initial_coords = (
         (-1, 0),
-        (0, 0),
-        (0, 1),
-        (1, 1)
+        ( 0, 0),
+        ( 0, 1),
+        ( 1, 1)
     )
 
 
 class TShaped(Snektromino):
     color = Color.PURPLE
     initial_coords = (
-        (-1, 0),
-        (0, -1),
-        (0, 0),
-        (1, 0)
+        (-1,  0),
+        ( 0, -1),
+        ( 0,  0),
+        ( 1,  0)
     )
 
 
 class ZShaped(Snektromino):
     color = Color.RED
     initial_coords = (
-        (-1, 0),
-        (0, 0),
-        (0, -1),
-        (1, -1)
+        (-1,  0),
+        ( 0,  0),
+        ( 0, -1),
+        ( 1, -1)
     )
 
 
@@ -204,9 +204,9 @@ class IShaped(Snektromino):
     color = Color.CYAN
     initial_coords = (
         (-1, 0),
-        (0, 0),
-        (1, 0),
-        (2, 0)
+        ( 0, 0),
+        ( 1, 0),
+        ( 2, 0)
     )
 
 
