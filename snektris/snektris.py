@@ -5,6 +5,7 @@ import random
 import time
 from typing import Sequence, Tuple, Dict, List
 
+import fire
 import pygame
 from pygame.locals import QUIT, K_SPACE
 
@@ -130,11 +131,6 @@ def run_game():
             ):
                 active_snektromino = new_snektromino
 
-            yield blocks, active_snektromino
-
-            pygame.display.flip()
-            time.sleep(DELAY)
-
             if counter == 30:
                 new_snektromino = active_snektromino.step_down()
                 if new_snektromino.within_boundaries() and not new_snektromino.overlaps_with(
@@ -157,8 +153,13 @@ def run_game():
 
             blocks = clear_lines(blocks)
 
+            yield blocks, active_snektromino
 
-def main():
+
+def main(seed=None, debug=False):
+    if debug:
+        logging.basicConfig(level=logging.DEBUG)
+    random.seed(seed)
     pygame.display.init()
     screen = pygame.display.set_mode((300, 600))
     grid = Grid(300, 600)
@@ -168,8 +169,9 @@ def main():
         grid.draw_background(screen)
         grid.draw_grid(screen)
         grid.draw_snektrominos(screen, blocks, active_snektromino)
+        pygame.display.flip()
+        time.sleep(DELAY)
 
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    main()
+def cli():
+    fire.Fire(main)
