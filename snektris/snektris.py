@@ -1,9 +1,3 @@
-"""
-SNEKTRIS
-"""
-
-__version__ = "0.0.2"
-
 from enum import Enum
 from itertools import product
 import logging

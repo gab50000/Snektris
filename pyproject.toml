@@ -13,4 +13,4 @@ requires = [
 ]
 
 [tool.flit.scripts]
-snektris = "snektris:main"
+snektris = "snektris.snektris:main"
