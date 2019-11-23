@@ -28,6 +28,7 @@ from .blocks import (
 logger = logging.getLogger(__name__)
 
 
+GAME_NAME = "Snektris"
 DELAY = 1 / 30
 START_POSITION = 0, 4
 
@@ -171,7 +172,7 @@ def single(seed=None, debug=False):
     pygame.display.init()
     screen = pygame.display.set_mode((300, 600))
     grid = Grid(300, 600)
-    pygame.display.set_caption("Snektris")
+    pygame.display.set_caption(GAME_NAME)
 
     for blocks, active_snektromino in run_game():
         grid.draw_background(screen)
@@ -181,7 +182,11 @@ def single(seed=None, debug=False):
         time.sleep(DELAY)
 
 
-def multi(seed=None, debug=False):
+def multi(mode, host="localhost", port=8080, *, seed=None, debug=False):
+    mode = mode.lower()
+    if mode not in ("client", "server"):
+        raise ValueError("Choose between 'client' and 'server'")
+
     if debug:
         logging.basicConfig(level=logging.DEBUG)
     random.seed(seed)
@@ -189,7 +194,7 @@ def multi(seed=None, debug=False):
     screen = pygame.display.set_mode((800, 600))
     grid = Grid(300, 600)
     grid2 = Grid(300, 600, 500, 0)
-    pygame.display.set_caption("Snektris")
+    pygame.display.set_caption(GAME_NAME)
 
     for blocks, active_snektromino in run_game():
         grid.draw_background(screen)
