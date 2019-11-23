@@ -33,9 +33,12 @@ START_POSITION = 0, 4
 
 
 class Grid:
-    def __init__(self, width, height):
-        self.height = height
+    def __init__(self, width, height, anchor_x=0, anchor_y=0):
         self.width = width
+        self.height = height
+
+        self.anchor_x = anchor_x
+        self.anchor_y = anchor_y
 
         self.grid_height = GRID_HEIGHT
         self.grid_width = GRID_WIDTH
@@ -43,19 +46,21 @@ class Grid:
         self.pixel_width = self.width // self.grid_width
         self.pixel_height = self.height // self.grid_height
 
-    @staticmethod
-    def draw_background(screen):
-        background = pygame.Surface(screen.get_size())
+    def draw_background(self, screen):
+        background = pygame.Surface((self.width, self.height))
         background = background.convert()
         background.fill(Color.LINE_COLOR.value)
-        screen.blit(background, (0, 0))
+        screen.blit(background, (self.anchor_x, self.anchor_y))
 
     def draw_grid(self, screen):
         pix_width = self.pixel_width
         pix_height = self.pixel_height
         for i, j in product(range(self.grid_height), range(self.grid_width)):
             rect = pygame.Rect(
-                j * pix_width, i * pix_height, pix_width - 1, pix_height - 1
+                j * pix_width + self.anchor_x,
+                i * pix_height + self.anchor_y,
+                pix_width - 1,
+                pix_height - 1,
             )
             pygame.draw.rect(screen, Color.BACKGROUND.value, rect)
 
@@ -66,7 +71,10 @@ class Grid:
             i, j = block.coords
             color = block.color
             rect = pygame.Rect(
-                j * pix_width, i * pix_height, pix_width - 1, pix_height - 1
+                j * pix_width + self.anchor_x,
+                i * pix_height + self.anchor_y,
+                pix_width - 1,
+                pix_height - 1,
             )
             pygame.draw.rect(screen, color.value, rect)
 
@@ -156,7 +164,7 @@ def run_game():
             yield blocks, active_snektromino
 
 
-def main(seed=None, debug=False):
+def single(seed=None, debug=False):
     if debug:
         logging.basicConfig(level=logging.DEBUG)
     random.seed(seed)
@@ -173,5 +181,26 @@ def main(seed=None, debug=False):
         time.sleep(DELAY)
 
 
+def multi(seed=None, debug=False):
+    if debug:
+        logging.basicConfig(level=logging.DEBUG)
+    random.seed(seed)
+    pygame.display.init()
+    screen = pygame.display.set_mode((800, 600))
+    grid = Grid(300, 600)
+    grid2 = Grid(300, 600, 500, 0)
+    pygame.display.set_caption("Snektris")
+
+    for blocks, active_snektromino in run_game():
+        grid.draw_background(screen)
+        grid.draw_grid(screen)
+        grid.draw_snektrominos(screen, blocks, active_snektromino)
+        grid2.draw_background(screen)
+        grid2.draw_grid(screen)
+        grid2.draw_snektrominos(screen, blocks, active_snektromino)
+        pygame.display.flip()
+        time.sleep(DELAY)
+
+
 def cli():
-    fire.Fire(main)
+    fire.Fire({"single": single, "multi": multi})
