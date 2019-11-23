@@ -42,9 +42,6 @@ class Grid:
         self.pixel_width = self.width // self.grid_width
         self.pixel_height = self.height // self.grid_height
 
-        self.blocks = {}
-        self.active_snektromino = None
-
     @staticmethod
     def draw_background(screen):
         background = pygame.Surface(screen.get_size())
@@ -61,10 +58,10 @@ class Grid:
             )
             pygame.draw.rect(screen, Color.BACKGROUND.value, rect)
 
-    def draw_snektrominos(self, screen, active_snektromino):
+    def draw_snektrominos(self, screen, blocks, active_snektromino):
         pix_width = self.pixel_width
         pix_height = self.pixel_height
-        for block in [*active_snektromino.blocks, *self.blocks.values()]:
+        for block in [*active_snektromino.blocks, *blocks.values()]:
             i, j = block.coords
             color = block.color
             rect = pygame.Rect(
@@ -72,9 +69,10 @@ class Grid:
             )
             pygame.draw.rect(screen, color.value, rect)
 
-    def update_blocks(self, new_blocks):
-        for block in new_blocks:
-            self.blocks[block.coords] = block
+
+def update_blocks(blocks, new_blocks):
+    for block in new_blocks:
+        blocks[block.coords] = block
 
 
 def process_input(event, active_snektromino, blocks):
@@ -111,6 +109,8 @@ def main():
     counter = 0
     game_over = False
 
+    blocks = {}
+
     while not game_over:
 
         snektromino_class = random.choice(
@@ -127,18 +127,18 @@ def main():
                 if event.type == QUIT:
                     return
 
-                new_snektromino = process_input(event, active_snektromino, grid.blocks)
+                new_snektromino = process_input(event, active_snektromino, blocks)
 
             if (
                 new_snektromino
                 and new_snektromino.within_boundaries()
-                and not new_snektromino.overlaps_with(grid.blocks)
+                and not new_snektromino.overlaps_with(blocks)
             ):
                 active_snektromino = new_snektromino
 
             grid.draw_background(screen)
             grid.draw_grid(screen)
-            grid.draw_snektrominos(screen, active_snektromino)
+            grid.draw_snektrominos(screen, blocks, active_snektromino)
 
             pygame.display.flip()
             time.sleep(DELAY)
@@ -146,7 +146,7 @@ def main():
             if counter == 30:
                 new_snektromino = active_snektromino.step_down()
                 if new_snektromino.within_boundaries() and not new_snektromino.overlaps_with(
-                    grid.blocks
+                    blocks
                 ):
                     active_snektromino = new_snektromino
                 else:
@@ -157,13 +157,13 @@ def main():
             counter += 1
 
             if active_snektromino.done:
-                grid.update_blocks(active_snektromino.blocks)
+                update_blocks(blocks, active_snektromino.blocks)
 
-                if START_POSITION in grid.blocks:
+                if START_POSITION in blocks:
                     game_over = True
                 break
 
-            grid.blocks = clear_lines(grid.blocks)
+            blocks = clear_lines(blocks)
 
 
 if __name__ == "__main__":
