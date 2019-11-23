@@ -100,12 +100,7 @@ def process_input(event, active_snektromino, blocks):
     return new_snektromino
 
 
-def main():
-    pygame.display.init()
-    screen = pygame.display.set_mode((300, 600))
-    grid = Grid(300, 600)
-    pygame.display.set_caption("Snektris")
-
+def run_game():
     counter = 0
     game_over = False
 
@@ -117,7 +112,6 @@ def main():
             [SShaped, TShaped, ZShaped, LShaped, IShaped, JShaped, OShaped]
         )
         active_snektromino = snektromino_class(*START_POSITION)
-        grid.active_snektromino = active_snektromino
 
         while True:
             keys = pygame.key.get_pressed()
@@ -136,9 +130,7 @@ def main():
             ):
                 active_snektromino = new_snektromino
 
-            grid.draw_background(screen)
-            grid.draw_grid(screen)
-            grid.draw_snektrominos(screen, blocks, active_snektromino)
+            yield blocks, active_snektromino
 
             pygame.display.flip()
             time.sleep(DELAY)
@@ -164,6 +156,18 @@ def main():
                 break
 
             blocks = clear_lines(blocks)
+
+
+def main():
+    pygame.display.init()
+    screen = pygame.display.set_mode((300, 600))
+    grid = Grid(300, 600)
+    pygame.display.set_caption("Snektris")
+
+    for blocks, active_snektromino in run_game():
+        grid.draw_background(screen)
+        grid.draw_grid(screen)
+        grid.draw_snektrominos(screen, blocks, active_snektromino)
 
 
 if __name__ == "__main__":
