@@ -86,7 +86,7 @@ class Snektromino:
 
     def step_down(self):
         new_blocks = [block.step_down() for block in self.blocks]
-        return self.__class__(self.i + 1, self.j, new_blocks)
+        return type(self)(self.i + 1, self.j, new_blocks)
 
     def fall_down(self, other_positions):
         new_piece = self.step_down()
@@ -100,23 +100,23 @@ class Snektromino:
 
     def step_left(self):
         new_blocks = [block.step_left() for block in self.blocks]
-        return self.__class__(self.i, self.j - 1, new_blocks)
+        return type(self)(self.i, self.j - 1, new_blocks)
 
     def step_right(self):
         new_blocks = [block.step_right() for block in self.blocks]
-        return self.__class__(self.i, self.j + 1, new_blocks)
+        return type(self)(self.i, self.j + 1, new_blocks)
 
     def rotate_clockwise(self):
         logger.debug("Before rotation: %s", self)
         new_blocks = [block.rotate_clockwise(self.i, self.j) for block in self.blocks]
-        return self.__class__(self.i, self.j, new_blocks)
+        return type(self)(self.i, self.j, new_blocks)
 
     def rotate_anticlockwise(self):
         logger.debug("Before rotation: %s", self)
         new_blocks = [
             block.rotate_anticlockwise(self.i, self.j) for block in self.blocks
         ]
-        return self.__class__(self.i, self.j, new_blocks)
+        return type(self)(self.i, self.j, new_blocks)
 
     def within_boundaries(self):
         for block in self.blocks:
