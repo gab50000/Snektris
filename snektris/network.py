@@ -2,11 +2,11 @@ import logging
 import pickle
 import socket
 import sys
+import time
+from contextlib import contextmanager
+from queue import Queue
 from socketserver import BaseRequestHandler, TCPServer
 from threading import Thread
-import time
-from queue import Queue
-
 
 logger = logging.getLogger(__name__)
 

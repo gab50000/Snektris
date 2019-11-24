@@ -1,26 +1,26 @@
-from itertools import product
 import logging
-from operator import attrgetter
 import random
 import time
-from typing import Sequence, Tuple, Dict, List
+from itertools import product
+from operator import attrgetter
+from typing import Dict, List, Sequence, Tuple
 
 import fire
 import pygame
-from pygame.locals import QUIT, K_SPACE
+from pygame.locals import K_SPACE, QUIT
 
 from .blocks import (
-    SShaped,
-    ZShaped,
-    OShaped,
-    IShaped,
-    TShaped,
-    LShaped,
-    JShaped,
-    SingleBlock,
     GRID_HEIGHT,
     GRID_WIDTH,
     Color,
+    IShaped,
+    JShaped,
+    LShaped,
+    OShaped,
+    SingleBlock,
+    SShaped,
+    TShaped,
+    ZShaped,
     clear_lines,
 )
 
