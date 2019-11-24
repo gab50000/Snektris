@@ -16,14 +16,15 @@ from .blocks import Color, SingleBlock, GRID_HEIGHT, GRID_WIDTH
 logger = logging.getLogger(__name__)
 
 
-def _start_server(host, port, queue):
+def _start_server(host, port, rcv_queue):
     class Server(BaseRequestHandler):
         def handle(self):
             data = pickle.loads(self.request.recv(1024))
-            print("Got", data)
-            queue.put(data)
-            # just send back the same data, but upper-cased
-            # self.request.sendall(pickle.dumps(np.ascontiguousarray(data.T)))
+            logger.info("Got %s from %s", data, self.client_address)
+            rcv_queue.put(data)
+            # if not rcv_queue.empty():
+            #    data = rcv_queue.get()
+            #    self.request.sendall(pickle.dumps(data))
 
     with TCPServer((host, port), Server) as server:
         server.serve_forever()
