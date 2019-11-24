@@ -257,4 +257,3 @@ def blocks_to_list(blocks):
     for i, j in blocks:
         list_[i][j] = 1
     return list_
-
