@@ -1,5 +1,6 @@
 import logging
 import pickle
+import random
 import socket
 import sys
 import time
@@ -8,10 +9,14 @@ from queue import Queue
 from socketserver import BaseRequestHandler, TCPServer
 from threading import Thread
 
+import fire
+
+from .blocks import Color, SingleBlock, GRID_HEIGHT, GRID_WIDTH
+
 logger = logging.getLogger(__name__)
 
 
-def run_server(host, port, queue):
+def _start_server(host, port, queue):
     class Server(BaseRequestHandler):
         def handle(self):
             data = pickle.loads(self.request.recv(1024))
@@ -24,17 +29,36 @@ def run_server(host, port, queue):
         server.serve_forever()
 
 
-q = Queue()
+@contextmanager
+def run_server(host, port):
+    q = Queue()
 
-try:
-    thread = Thread(target=run_server, args=("localhost", 8080, q))
-    thread.start()
+    try:
+        thread = Thread(target=_start_server, args=(host, port, q))
+        thread.start()
+        yield q
+    finally:
+        thread.join()
 
-    for _ in range(20):
-        if q.full():
-            print(q.get())
-        else:
-            print("Nothing")
-        time.sleep(3)
-finally:
-    thread.join()
+
+class Client:
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+
+    def send_blocks(self, blocks):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.connect((self.host, self.port))
+            sock.sendall(pickle.dumps(blocks))
+
+    def send_random_blocks(self):
+        blocks = {}
+        for _ in range(10):
+            i = random.randint(0, GRID_HEIGHT)
+            j = random.randint(0, GRID_WIDTH)
+            blocks[(i, j)] = SingleBlock(i, j, Color.GREEN)
+        self.send_blocks(blocks)
+
+
+def cli():
+    fire.Fire()

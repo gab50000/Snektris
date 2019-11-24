@@ -14,3 +14,4 @@ requires = [
 
 [tool.flit.scripts]
 snektris = "snektris.snektris:cli"
+snek_net = "snektris.network:cli"

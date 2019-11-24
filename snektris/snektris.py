@@ -23,6 +23,7 @@ from .blocks import (
     ZShaped,
     clear_lines,
 )
+from .network import run_server
 
 
 logger = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 GAME_NAME = "Snektris"
 DELAY = 1 / 30
-START_POSITION = 0, 4
+START_POSITION = (0, 4)
 
 
 class Grid:
@@ -196,15 +197,19 @@ def multi(mode, host="localhost", port=8080, *, seed=None, debug=False):
     grid2 = Grid(300, 600, 500, 0)
     pygame.display.set_caption(GAME_NAME)
 
-    for blocks, active_snektromino in run_game():
-        grid.draw_background(screen)
-        grid.draw_grid(screen)
-        grid.draw_snektrominos(screen, blocks, active_snektromino)
-        grid2.draw_background(screen)
-        grid2.draw_grid(screen)
-        grid2.draw_snektrominos(screen, blocks, active_snektromino)
-        pygame.display.flip()
-        time.sleep(DELAY)
+    with run_server(host, port) as q:
+        for blocks, active_snektromino in run_game():
+            grid.draw_background(screen)
+            grid.draw_grid(screen)
+            grid.draw_snektrominos(screen, blocks, active_snektromino)
+            if not q.empty():
+                logger.debug("Found something in queue")
+                remote_blocks = q.get()
+                grid2.draw_background(screen)
+                grid2.draw_grid(screen)
+                grid2.draw_snektrominos(screen, remote_blocks, active_snektromino)
+            pygame.display.flip()
+            time.sleep(DELAY)
 
 
 def cli():
