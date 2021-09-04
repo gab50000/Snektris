@@ -133,24 +133,23 @@ class Snektromino:
         return any(block.coords in other_blocks for block in self.blocks)
 
 
-# fmt: off
 class LShaped(Snektromino):
     color = Color.BLUE
     initial_coords = (
         (-1, 0),
-        ( 0, 0),
-        ( 1, 0),
-        ( 1, 1)
+        (0, 0),
+        (1, 0),
+        (1, 1),
     )
 
 
 class JShaped(Snektromino):
     color = Color.ORANGE
     initial_coords = (
-        (-1,  0),
-        ( 0,  0),
-        ( 1,  0),
-        ( 1, -1)
+        (-1, 0),
+        (0, 0),
+        (1, 0),
+        (1, -1),
     )
 
 
@@ -158,29 +157,29 @@ class SShaped(Snektromino):
     color = Color.GREEN
     initial_coords = (
         (-1, 0),
-        ( 0, 0),
-        ( 0, 1),
-        ( 1, 1)
+        (0, 0),
+        (0, 1),
+        (1, 1),
     )
 
 
 class TShaped(Snektromino):
     color = Color.PURPLE
     initial_coords = (
-        (-1,  0),
-        ( 0, -1),
-        ( 0,  0),
-        ( 1,  0)
+        (-1, 0),
+        (0, -1),
+        (0, 0),
+        (1, 0),
     )
 
 
 class ZShaped(Snektromino):
     color = Color.RED
     initial_coords = (
-        (-1,  0),
-        ( 0,  0),
-        ( 0, -1),
-        ( 1, -1)
+        (-1, 0),
+        (0, 0),
+        (0, -1),
+        (1, -1),
     )
 
 
@@ -188,9 +187,9 @@ class IShaped(Snektromino):
     color = Color.CYAN
     initial_coords = (
         (-1, 0),
-        ( 0, 0),
-        ( 1, 0),
-        ( 2, 0)
+        (0, 0),
+        (1, 0),
+        (2, 0),
     )
 
 
@@ -200,7 +199,7 @@ class OShaped(Snektromino):
         (0, 0),
         (1, 0),
         (0, 1),
-        (1, 1)
+        (1, 1),
     )
 
     def rotate_clockwise(self):
@@ -208,8 +207,6 @@ class OShaped(Snektromino):
 
     def rotate_anticlockwise(self):
         return self
-
-# fmt: on
 
 
 def clear_lines(
